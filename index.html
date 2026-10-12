@@ -482,7 +482,7 @@ function numText(g, s, x, y, size, col, stroke) {
 /* ---------- game state ---------- */
 var G = { st: 'menu', L: 1, t: 0 }, lvl = null, keys = {}, parts = [], floats = [];
 function startLevel(L) {
-  AU.init(); G.L = L; lvl = genLevel(L, SAVE.diff); G.th = themeOf(L); G.st = 'run'; G.v = 1; G.px = 0; G.tx = 0; G.pz = 0; G.spd = 0; G.coins = 0; G.qok = 0; G.qbad = 0; G.sq = 0; G.endT = 0; G.peak = 1; G.bossV = lvl.boss; G.bossHurt = 0; G.mood = ''; G.moodT = 0; G.shake = 0;
+  AU.init(); G.L = L; lvl = genLevel(L, SAVE.diff); G.th = themeOf(L); G.st = 'run'; G.v = 1; G.px = 0; G.tx = 0; G.pz = 0; G.spd = 0; G.coins = 0; G.qok = 0; G.qbad = 0; G.sq = 0; G.endT = 0; G.peak = 1; G.bossV = lvl.boss; G.bossHurt = 0; G.bossGone = 0; G.win = 0; G.why = ''; G.tok = (G.tok || 0) + 1; G.mood = ''; G.moodT = 0; G.shake = 0;
   lvl.ev.forEach(function (e) { e.done = 0; }); parts = []; floats = [];
   show(null); $('#hud').classList.remove('hidden'); $('#lvlTag').textContent = 'Level ' + L + ' · ' + ['Easy', 'Medium', 'Hard'][SAVE.diff]; updCoins();
   zt('level_start', { level: L, level_name: 'L' + L, difficulty: ['easy', 'medium', 'hard'][SAVE.diff] }); ztPlay(true);
@@ -505,7 +505,7 @@ function setV(nv, why) {
 }
 function fail(why) {
   if (G.st !== 'run') return; G.st = 'end'; G.mood = 'sad'; AU.sfx('lose'); G.win = 0; G.why = why;
-  setTimeout(function () { results(); }, 1300);
+  var tk = G.tok; setTimeout(function () { if (G.tok === tk && G.st === 'end') results(); }, 1300);
 }
 function proj(x, y, z) { var rz = Math.max(.3, z - G.camZ), s = F / rz; return { x: W / 2 + (x - G.camX) * s, y: HOR + (CAMH - y) * s, s: s }; }
 
@@ -533,16 +533,16 @@ function update(dt) {
       else if (e.t === 'cloud') { var cxp = e.x0 + Math.sin(G.t * e.sp + e.ph) * e.amp; e.cx = cxp; if (Math.abs(G.pz - e.z) < .7 && Math.abs(G.px - cxp) < .95) { e.done = 1; var q = proj(cxp, 1, e.z); burst(q.x, q.y, ['#fff', '#cfd6e6', '#9aa3b5'], 20); AU.sfx('thud'); setV(apply(G.v, e.op)); } }
       else if (e.t === 'coin') { if (Math.abs(G.pz - e.z) < .6 && Math.abs(G.px - e.x) < .75) { e.done = 1; G.coins++; AU.sfx('coin'); var c = proj(e.x, .6, e.z); burst(c.x, c.y, ['#ffd23f', '#fff3a0'], 6, 120); updCoins(); } }
     });
-    if (G.pz >= lvl.end - 3.2) { G.pz = lvl.end - 3.2; G.tx = -1.25; G.st = 'battle'; G.bt = 0; G.bv0 = G.v; G.bb0 = G.bossV; AU.sfx('thud'); }
+    if (G.pz >= lvl.end - 3.2) { G.pz = lvl.end - 3.2; G.tx = -1.15; G.st = 'battle'; G.bt = 0; G.bv0 = G.v; G.bb0 = G.bossV; AU.sfx('thud'); }
   } else if (G.st === 'battle') {
-    G.px += (G.tx - G.px) * Math.min(1, dt * 8); G.bt += dt; var k = Math.min(1, G.bt / 1.4), take = Math.min(G.bv0, G.bb0) * k;
+    G.px += (G.tx - G.px) * Math.min(1, dt * 8); G.bt += dt; G.pz = Math.min(lvl.end - 2.5, G.pz + dt * 1.5); var k = Math.min(1, G.bt / 1.4), take = Math.min(G.bv0, G.bb0) * k;
     G.v = Math.round(G.bv0 - take); G.bossV = Math.round(G.bb0 - take); G.bossHurt = (G.bt * 10 | 0) % 2; G.shake = .08;
     if ((G.bt * 12 | 0) !== ((G.bt - dt) * 12 | 0)) AU.sfx('pop');
     if (k >= 1) {
       G.st = 'end'; G.win = G.bv0 > G.bb0; G.v = G.bv0; G.bossV = G.bb0;
       var bp = proj(0, 1.5, lvl.end);
       if (G.win) { G.mood = 'wow'; AU.sfx('win'); G.bossGone = G.t; burst(bp.x, bp.y, ['#ffd23f', '#ff7ac3', '#5ad1ff', '#7cff9a', '#fff'], 60, 420); } else { G.mood = 'sad'; AU.sfx('lose'); }
-      setTimeout(results, 1500);
+      var tk2 = G.tok; setTimeout(function () { if (G.tok === tk2 && G.st === 'end') results(); }, 1700);
     }
   }
   G.camZ = G.pz - CAMD; G.camX += (G.px * .55 - G.camX) * Math.min(1, dt * 6);
@@ -589,7 +589,7 @@ function render() {
     if (o.t === 'quiz') return drawQuiz(g, o);
     if (o.t === 'coin') { var c = proj(o.x, .7, o.z), r = .32 * c.s, sq = Math.abs(Math.cos(G.t * 4 + o.z)); g.fillStyle = 'rgba(0,0,0,.15)'; var cg = proj(o.x, 0, o.z); g.beginPath(); g.ellipse(cg.x, cg.y, r, r * .3, 0, 0, 7); g.fill(); g.save(); g.translate(c.x, c.y); g.scale(Math.max(.15, sq), 1); var gr = g.createRadialGradient(-r * .3, -r * .3, 1, 0, 0, r); gr.addColorStop(0, '#fff8c0'); gr.addColorStop(.5, '#ffd23f'); gr.addColorStop(1, '#e09a00'); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill(); g.lineWidth = Math.max(1, r * .14); g.strokeStyle = '#b87600'; g.stroke(); g.fillStyle = '#b87600'; g.fillRect(-r * .12, -r * .5, r * .24, r); g.restore(); return; }
     if (o.t === 'cloud') return drawCloudFoe(g, o);
-    if (o.t === 'boss') { var bp = proj(.9, 0, o.z); if (G.bossGone) { var k = (G.t - G.bossGone); bp.y -= k * 600; bp.x += k * 300; } drawBoss(g, bp.x, bp.y, 1.6 * bp.s, G.bossV, G.t, G.bossHurt); return; }
+    if (o.t === 'boss') { var bp = proj(.9, 0, o.z); var bR = 1.6 * bp.s; if (G.bossGone) { var k = Math.min(1, (G.t - G.bossGone) / .9); bR *= Math.max(.35, 1 - k * .65); bp.y -= Math.sin(k * Math.PI) * bR * .4; } drawBoss(g, bp.x, bp.y, bR, G.bossV, G.t, G.bossGone ? 1 : G.bossHurt); return; }
     if (o.t === 'player') { var pp = proj(G.px, 0, G.pz), R = (.55 + Math.min(.9, Math.log10(G.v + 1) * .28)) * pp.s; if (G.st === 'menu') { pp = proj(0, 0, G.pz); R = .8 * pp.s; }
       drawBuddy(g, pp.x, pp.y, R, SAVE.skin, G.t, G.mood, G.sq);
       if (G.st !== 'menu') { var by = pp.y - R * 2.1 - 34 - (SKINS[SAVE.skin].hat === 3 || SKINS[SAVE.skin].hat === 8 ? R * .6 : 0), txt = fmt(G.v), fs = 34 + G.sq * 12; g.font = '800 ' + fs + 'px Baloo,system-ui'; var tw = Math.max(56, g.measureText(txt).width + 26);
