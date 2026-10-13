@@ -104,6 +104,32 @@ body:not(.ads-on) .adslot{display:none!important}
 @media (orientation:landscape) and (max-height:560px){.skgrid{grid-template-columns:repeat(6,1fr)}.lvgrid{grid-template-columns:repeat(10,1fr)}}
 @media (orientation:landscape) and (max-height:560px){#tip{top:auto;bottom:12px;left:12px;transform:none;width:270px;font-size:16px}}
 
+.resMain,.resActs{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.rLab{font-size:16px;opacity:.7}.rInfo{font-size:16px;margin-top:4px}.rCoin{margin-top:8px}
+/* Short screens: compact result/pause panels so buttons stay in view */
+@media (max-height:450px){
+ #scrResults.screen,#scrPause.screen{padding:calc(env(safe-area-inset-top,0px) + 6px) max(12px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 6px) max(12px,env(safe-area-inset-left,0px));overflow-y:auto;-webkit-overflow-scrolling:touch}
+ #scrResults .wrap,#scrPause .wrap{gap:6px;margin:auto 0}
+ #scrResults .resMain,#scrResults .resActs,#scrPause .wrap{gap:6px}
+ .resT{font-size:34px;-webkit-text-stroke-width:2px;text-shadow:0 3px 0 #2b2350}
+ #scrResults .stars i{width:34px;height:34px}
+ #scrResults .panel{padding:8px 10px;border-radius:14px;box-shadow:0 4px 0 rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.15)}
+ .big-num{font-size:28px}
+ .rLab,.rInfo{font-size:13px}.rCoin{margin-top:4px;font-size:16px;padding:2px 10px 4px}
+ #scrResults .btn.big,#scrPause .btn.big{min-height:46px;font-size:22px;padding:6px 28px 10px;border-radius:16px}
+ #scrResults .row .btn,#scrPause .row .btn{min-height:40px;font-size:15px;padding:5px 12px 7px;border-radius:14px}
+ #scrResults .adslot{display:none!important}
+}
+/* Short landscape: side-by-side result panel */
+@media (orientation:landscape) and (max-height:450px){
+ #scrResults .wrap{max-width:min(820px,96vw);display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:16px;row-gap:6px;align-items:center}
+ #scrResults .resMain{grid-column:1;gap:4px}
+ #scrResults .resActs{grid-column:2;gap:8px;justify-content:center}
+ #scrResults #bNext{width:100%}
+ #scrResults .row{gap:6px}
+ #scrResults .adslot{grid-column:1 / -1}
+}
+
 </style>
 </head>
 <body>
@@ -180,16 +206,20 @@ body:not(.ads-on) .adslot{display:none!important}
 
 <div id="scrResults" class="screen dim hidden">
  <div class="wrap">
-  <h2 class="resT" id="rTitle" style="--i:0">Level Clear!</h2>
-  <div class="stars" id="rStars" style="--i:1"></div>
-  <div class="panel" style="--i:2;text-align:center">
-   <div style="font-size:16px;opacity:.7">Your number</div>
-   <div class="big-num" id="rNum">0</div>
-   <div style="font-size:16px;margin-top:4px" id="rInfo"></div>
-   <div class="pill" style="margin-top:8px;background:#2b2350"><span class="coin"></span>+<span id="rCoins">0</span></div>
+  <div class="resMain">
+   <h2 class="resT" id="rTitle" style="--i:0">Level Clear!</h2>
+   <div class="stars" id="rStars" style="--i:1"></div>
+   <div class="panel" style="--i:2;text-align:center">
+    <div class="rLab">Your number</div>
+    <div class="big-num" id="rNum">0</div>
+    <div class="rInfo" id="rInfo"></div>
+    <div class="pill rCoin" style="background:#2b2350"><span class="coin"></span>+<span id="rCoins">0</span></div>
+   </div>
   </div>
-  <button class="btn g big" id="bNext" style="--i:3">Next</button>
-  <div class="row" style="--i:4"><button class="btn y" id="bRetry">Retry</button><button class="btn b" data-go="scrLevels">Levels</button><button class="btn w" data-go="scrTitle">Menu</button></div>
+  <div class="resActs" style="--i:3">
+   <button class="btn g big" id="bNext">Next</button>
+   <div class="row"><button class="btn y" id="bRetry">Retry</button><button class="btn b" data-go="scrLevels">Levels</button><button class="btn w" data-go="scrTitle">Menu</button></div>
+  </div>
   <div class="adslot" aria-hidden="true"></div>
  </div>
 </div>
