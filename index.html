@@ -758,6 +758,9 @@ resize(); AU.set('snd', SAVE.snd); AU.set('mus', SAVE.mus); G.th = themeOf(Math.
 window.ND = { G: G, SAVE: SAVE, start: startLevel, genLevel: genLevel, get lvl() { return lvl; } };
 })();
 
+// block long-press / right-click menu everywhere (canvas, body, UI)
+document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
 
 </script>
 </body></html>
